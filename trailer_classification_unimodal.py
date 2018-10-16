@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import MinMaxScaler
@@ -14,6 +13,8 @@ from sklearn.tree import DecisionTreeClassifier
 import os
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+
 
 os.system('clear')
 
@@ -21,8 +22,8 @@ feat_folder = '/Users/MyHome/Documents/GitHub/MediaEvalFeatures/features/trailer
 rating_folder = '/Users/MyHome/Documents/GitHub/MediaEvalFeatures'
 
 
-feature_name = 'Tag'    # ivector(256,100), BLF, Deep(AVG), AVF, tag, genre
-classifer_type = 'RandomForestClassifier'       # LogisticRegression, Knn,  RandomForestClassifier
+feature_name = 'AVF(AVGVAR)'    # ivector(256,100), BLF, Deep(AVG), AVF, tag, genre
+classifer_type = 'Knn'       # LogisticRegression, Knn,  RandomForestClassifier
 
 
 
@@ -70,9 +71,36 @@ elif feature_name == 'Deep(AVGVAR)':
 elif feature_name == 'Deep(MEDMAD)':
 	features = pd.read_csv(feat_folder + '/Visual/AlexNet features/MedMad/AlexNetFeatures - MEDMAD - fc7.csv')
 
-elif feature_name == 'AVF(MED)':
-	features = pd.read_csv(feat_folder + '/Visual/Aesthetic features/Med/AestheticFeatures - Med - All.csv')
+elif feature_name == 'AVF(AVG)':
+	features = pd.read_csv(feat_folder + '/Visual/Aesthetic features/Avg/AestheticFeatures - AVG - All.csv')
+	columns = features.columns
+	features = features.replace([np.inf, -np.inf], np.nan)
+	imp_mean = SimpleImputer(missing_values=np.nan, strategy='mean')
+	imp_mean.fit(features)
+	features = imp_mean.transform(features)
+	features = pd.DataFrame(features, columns=columns)
 
+	print(np.any(np.isnan(features))) #and gets False
+	print(np.all(np.isfinite(features))) #and gets True
+
+elif feature_name == 'AVF(AVGVAR)':
+	features = pd.read_csv(feat_folder + '/Visual/Aesthetic features/AvgVar/AestheticFeatures - AVGVAR - All.csv')
+	columns = features.columns
+	features = features.replace([np.inf, -np.inf], np.nan)
+	imp_mean = SimpleImputer(missing_values=np.nan, strategy='mean')
+	imp_mean.fit(features)
+	features = imp_mean.transform(features)
+	features = pd.DataFrame(features, columns=columns)
+
+	print(np.any(np.isnan(features))) #and gets False
+	print(np.all(np.isfinite(features))) #and gets True
+
+elif feature_name == 'AVF(MED)':
+	features = pd.read_csv(feat_folder + '/Visual/Aesthetic features/MedMad/AestheticFeatures - Med - All.csv')
+
+
+elif feature_name == 'AVF(MEDMAD)':
+	features = pd.read_csv(feat_folder + '/Visual/Aesthetic features/Med/AestheticFeatures - Med - All.csv')
 
 	#features = features.iloc[:,0:108]    # Only to get AVG from AVGVAR
 	#print(features3.shape)
@@ -101,7 +129,7 @@ ratings = ratings.groupby('movieId').first()
 rating_features_merged = ratings.merge(features, on='movieId',how = 'inner')
 print(rating_features_merged.shape)
 print(rating_features_merged.head())
-print(list(rating_features_merged))
+#print(list(rating_features_merged))
 
 
 # X: features, y: labels  seperated
